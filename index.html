@@ -90,6 +90,10 @@
         .btn:hover {
             background-color: #5c0101;
         }
+        .btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
         .footer {
             margin-top: auto;
             padding: 20px;
@@ -114,7 +118,6 @@
 <body>
 
     <div class="header">
-        <!-- เปลี่ยน URL ใน src ด้านล่างเป็นลิงก์รูปโลโก้ของโรงเรียน -->
         <img src="https://i.postimg.cc/MpT9359t/d-sin-th-y-ngmi-di-t-ngch-x-(18).png" alt="โลโก้โรงเรียน">
         <h1>โรงเรียนบ้านหาดส้มแป้น จ.ชุมพร</h1>
     </div>
@@ -152,7 +155,7 @@
                 <input type="tel" id="phone" placeholder="08X-XXX-XXXX" required>
             </div>
 
-            <button type="submit" class="btn">ส่งคำขอใช้งาน</button>
+            <button type="submit" class="btn" id="submitBtn">ส่งคำขอใช้งาน</button>
         </form>
     </div>
 
@@ -162,9 +165,17 @@
     </div>
 
     <script>
-        document.getElementById('requestForm').addEventListener('submit', function(e) {
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbyARIlBh16Y1es0R_iQ7ZHMmQDoctnbjD2cx4qXZtr3flwIWF242qM7j7t3eG1VOE1lXQ/exec';
+        const form = document.getElementById('requestForm');
+        const btn = document.getElementById('submitBtn');
+
+        form.addEventListener('submit', e => {
             e.preventDefault(); // ป้องกันเว็บรีเฟรช
             
+            // เปลี่ยนสถานะปุ่มเพื่อป้องกันการกดซ้ำ
+            btn.disabled = true;
+            btn.innerText = 'กำลังส่งข้อมูล...';
+
             // ดึงข้อมูลจากฟอร์ม
             const data = {
                 firstName: document.getElementById('firstName').value,
@@ -174,19 +185,26 @@
                 phone: document.getElementById('phone').value
             };
 
-            // เปลี่ยน alert เป็นแจ้งเตือนสวยๆ หรือส่งข้อมูลไป Power Automate
-            alert('กำลังส่งข้อมูล... \n(เดี๋ยวเราจะเอาลิงก์จาก Power Automate มาใส่ตรงนี้ในขั้นตอนถัดไปค่ะ)');
-            
-            // ตัวอย่างโค้ดส่งข้อมูลที่จะใช้จริง:
-            /*
-            fetch('ลิงก์_URL_จาก_Power_Automate', {
+            // ส่งข้อมูลไปยัง Google Apps Script
+            fetch(scriptURL, {
                 method: 'POST',
-                headers: {'Content-Type': 'application/json'},
+                mode: 'no-cors', // ใช้ no-cors เพื่อความเสถียรในการทำงานกับ Apps Script
+                cache: 'no-cache',
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
-            }).then(response => {
-                alert('ส่งคำขอเรียบร้อย! โปรดตรวจสอบคู่มือการใช้งานในอีเมลสำรองของคุณ');
+            })
+            .then(() => {
+                alert('ส่งคำขอเรียบร้อยแล้วค่ะ! \nระบบกำลังดำเนินการสร้างบัญชีให้ท่าน โปรดตรวจสอบรหัสผ่านและคู่มือที่อีเมลสำรองของท่านภายใน 5-10 นาทีค่ะ');
+                form.reset(); // ล้างข้อมูลในฟอร์ม
+            })
+            .catch(error => {
+                alert('อุ๊ย! เกิดข้อผิดพลาดบางอย่าง: ' + error.message);
+            })
+            .finally(() => {
+                // คืนค่าปุ่มกลับมาเหมือนเดิม
+                btn.disabled = false;
+                btn.innerText = 'ส่งคำขอใช้งาน';
             });
-            */
         });
     </script>
 </body>
